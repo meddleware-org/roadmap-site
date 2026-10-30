@@ -1,0 +1,11 @@
+# Roadmap
+
+> The public roadmap of a content hub: phases and items with their status (planned, in progress, done).
+
+The page reads `/public/v1/roadmap` (JSON) on this host, and `/public/v1/snapshot` for the latest signed record of it.
+Automated clients should prefer the machine-readable roadmap and feeds the operator publishes on its machine host
+(`/public/v1/roadmap-bot`, `/public/v1/feed.json`, `/public/v1/snapshot`).
+
+The signed record: the roadmap is also stored on Walrus as a canonical JSON document signed as a Sui personal message. To
+verify it, fetch the blob, check its SHA-256, then verify the signature with `verifyPersonalMessageSignature` from
+`@mysten/sui` and compare the signing address with the one the operator publishes.

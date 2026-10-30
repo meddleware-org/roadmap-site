@@ -1,0 +1,104 @@
+name: Node CI
+
+# Continuous integration gate for roadmap-site. Runs on every push and PR.
+# The publish workflow fires only on version tags; keeping this green before
+# tagging is the release gate.
+#
+# Jobs: type-check (vue-tsc, linters, unit tests) → build (vite, licence notices, inline-script check)
+# → scan (Trivy filesystem) → image (build the Dockerfile and probe the running container)
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["**"]
+  # The release workflow runs the same checks on the tagged commit.
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  type-check:
+    name: Type check (vue-tsc)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '26'
+      - name: Install dependencies
+        run: npm ci
+      - name: Audit dependencies (npm advisory DB; complements Trivy)
+        run: node .github/audit-gate.mjs
+      - name: Type check
+        run: npm run type-check
+      - name: Lint CSS (stylelint)
+        run: npm run lint:css
+      - name: Lint JS (eslint + vuejs-a11y)
+        run: npm run lint:js
+      - name: Lint HTML (html-validate)
+        run: npm run lint:html
+
+      - name: Unit tests
+        run: npm test
+
+  build:
+    name: Build (vite)
+    runs-on: ubuntu-latest
+    needs: type-check
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '26'
+      - name: Install dependencies
+        run: npm ci
+      - name: Build
+        run: npm run build
+
+      - name: Link-preview tags present, no test support in the built files
+        run: npm run check:dist
+
+      - name: Third-party licence notices
+        run: npm run check:licenses && test -s dist/THIRD_PARTY_LICENSES
+
+      # The built page in a real browser against mocked public routes, under the production CSP, with no network:
+      # the page's states, hostile text, link-preview tags, phone width and axe in every theme and season.
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Browser tests (mocked public routes)
+        run: npm run test:e2e
+
+      # The image serves script-src 'self': an inline <script> in dist/ would be refused by the browser.
+      - name: No inline script outside the CSP
+        run: npm run check:csp
+
+  scan:
+    name: Filesystem scan (Trivy)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Trivy filesystem scan
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          scanners: vuln,misconfig,secret
+          severity: CRITICAL,HIGH
+          exit-code: "1"
+          ignore-unfixed: true
+          version: v0.74.0
+
+  image:
+    name: Image (build and probe)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # Not pushed. Builds the Dockerfile as the release does (the inline-script check included) and runs the
+      # container the way the cluster does: non-root user, read-only root, no capabilities.
+      - name: Build (not pushed)
+        run: docker build --tag roadmap-site:ci .
+      - name: Probe the container (user, /, headers, bundle, licences)
+        run: bash scripts/smoke.sh roadmap-site:ci

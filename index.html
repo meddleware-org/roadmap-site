@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <!-- @meta -->
+    <!-- The Content-Security-Policy is the response header (Dockerfile CSP, served by static-server with a
+         per-response script nonce). No <meta> CSP: browsers enforce every policy. -->
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

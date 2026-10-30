@@ -1,0 +1,4 @@
+# Default crawler policy of the roadmap site. A deployment replaces this file with its own (for example from a
+# ConfigMap), including its sitemap and content-usage preferences.
+User-agent: *
+Allow: /
