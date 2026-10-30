@@ -19,13 +19,13 @@
 **Hosting:** static-server 0.1.11 image
 **Embedding hosts:** none
 **VITE_* inventory:** VITE_SITE_NAME, VITE_SITE_DESCRIPTION, VITE_SITE_URL
-**Images:** quay.io/meddleware-org/roadmap-site (unpublished)
+**Images:** quay.io/meddleware-org/roadmap-site (0.0.2)
 **Base images:** node:26-slim@sha256:0d1e3358… (build, $BUILDPLATFORM) · static-server:0.1.11@sha256:94685b94… (runtime)
 **Runtime user:** 65534   **Runtime FS:** read-only
 **Deployed by:** the instance's `post-bootstrap/content-hub/` (C9)
 **Build args:** VITE_SITE_NAME, VITE_SITE_DESCRIPTION, VITE_SITE_URL — not secret
-**Deployment status:** unpublished (0.0.1 local, Series C C4)
-**Review date:** 2026-10-29
+**Deployment status:** live on testnet (R2, 2026-10-30); 0.0.2 released, pinned by consensus (cosign valid) and deployed 2026-10-30
+**Review date:** 2026-10-29; 0.0.2 re-verified 2026-10-30 against screenshots (filter layout on phones fixed; deployed)
 **Reviewer:** Internal review
 **Severity ceiling:** Low — a static page of public data, no input, no credentials
 **Status:** C8 — the roadmap page implemented; 42 vitest tests; 14 Chromium tests (flows, link-preview tags, phone width, axe in every theme and season); lint, type-check, build, CSP and dist checks green; the runtime image built from this `dist` passes `scripts/smoke.sh`. The full image build waits for nothing unpublished (the site has no unpublished dependency)
