@@ -4,7 +4,7 @@ The public roadmap of a content hub: the phases and items an operator has made p
 site on `@meddleware/ui`, served by static-server. Data: `GET /public/v1/roadmap` on the same host, which the
 ingress routes to the hub's public process ([content-hub-service](https://github.com/meddleware-org/content-hub-service)).
 
-**Status (0.0.1):** the roadmap page works against the hub's public routes.
+**Status (0.0.2):** the roadmap page works against the hub's public routes.
 
 - **What it shows:** phases (public name, description, date window) and their items (title, description, status as a word
   with a symbol, the public date), with a status filter, loading / error-with-retry / empty states, and, when the hub has

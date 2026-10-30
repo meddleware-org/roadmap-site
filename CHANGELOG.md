@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.0.2 — unreleased
+## 0.0.2 — 2026-10-30
 
 - The status filter is an even two-by-two grid on a phone (it wrapped into ragged rows with empty cells) and a single compact row from 36em.
 - `npm run shots`: screenshots of every page state at phone and desktop width in both themes, for looking at the page.
