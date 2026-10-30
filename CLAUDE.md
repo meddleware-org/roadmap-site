@@ -18,6 +18,12 @@ The public roadmap site. See [README.md](README.md).
 - Fleet UI rules: semantic markup (one `h1`, content in `main`), no inline styles, design-token colours only,
   html-validate and the a11y lint gate.
 
+## Looking at it
+
+`npm run shots` (Playwright, the built page, mocked routes) writes a PNG per state (roadmap, record open, filtered, empty, error),
+viewport (phone 390, desktop 1280) and theme to `test-results/screens/`: open them and look. It found the status filter wrapping
+into ragged rows on a phone (now an even two-by-two grid below 36em). Nothing is compared to a baseline.
+
 ## Tests
 
 `npm test` (vitest): the parser (what is kept, dropped and bounded), dates, every state of the page against a mocked

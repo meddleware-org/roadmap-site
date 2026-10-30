@@ -1,6 +1,6 @@
 {
   "name": "roadmap-site",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "private": true,
   "description": "Public roadmap site of the content hub: phases and items an operator has made public. Vue 3 on @meddleware/ui, served by static-server.",
   "license": "0BSD",
@@ -23,6 +23,7 @@
     "check:licenses": "node scripts/third-party-licenses.mjs --check",
     "check:csp": "node scripts/check-csp-inline.mjs @Dockerfile dist",
     "test:e2e": "playwright test",
+    "shots": "SHOTS=1 playwright test e2e/screens.spec.ts",
     "check:dist": "node scripts/check-dist.mjs dist"
   },
   "dependencies": {

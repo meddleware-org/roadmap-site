@@ -25,26 +25,44 @@ const OPTIONS: ReadonlyArray<{ id: Status | 'all'; label: string }> = [
 <style scoped>
 .filter {
   position: relative;
-  display: flex;
-  flex-wrap: wrap;
+  /* Phone: an even two-by-two grid (a wrapping row left ragged rows and empty cells). */
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1px;
   margin: 0 0 var(--space-md);
   padding: 0;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
+  background: var(--border);
   overflow: hidden;
-  width: fit-content;
-  max-width: 100%;
+  width: 100%;
 }
 
 .opt {
   padding: var(--space-2xs) var(--space-sm);
   background: var(--surface);
   color: var(--text);
+  text-align: center;
   cursor: pointer;
 }
 
-.opt + .opt {
-  border-left: 1px solid var(--border);
+@media (width >= 36em) {
+  /* Wider screens: one compact row, sized to its content. */
+  .filter {
+    display: flex;
+    gap: 0;
+    background: none;
+    width: fit-content;
+    max-width: 100%;
+  }
+
+  .opt {
+    text-align: start;
+  }
+
+  .opt + .opt {
+    border-left: 1px solid var(--border);
+  }
 }
 
 .on {

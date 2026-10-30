@@ -1,6 +1,11 @@
 # Changelog
 
-## 0.0.1 — unreleased
+## 0.0.2 — unreleased
+
+- The status filter is an even two-by-two grid on a phone (it wrapped into ragged rows with empty cells) and a single compact row from 36em.
+- `npm run shots`: screenshots of every page state at phone and desktop width in both themes, for looking at the page.
+
+## 0.0.1 — released 2026-10-30
 
 - The release passes `VITE_SITE_DESCRIPTION` and `VITE_SITE_URL` from repository variables as well as the name.
 - The roadmap page: phases and items with public wording, status words and symbols, public dates in the visitor's time
