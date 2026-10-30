@@ -156,11 +156,12 @@ all hold (copied from the fleet workflows).
 
 ### pre-testnet
 - [x] `SECURITY.md` present
-- [ ] published with provenance — R2
+- [x] image signed and pinned — 2026-10-30, R2
 - [x] deployment prepared: its Deployment (non-root, read-only root, no token, no egress), the deployment's own
   `robots.txt`/`llms.txt` mounted over the generic ones, `roadmap.` routing exactly its two data routes to the public
   process (proved on the rendered manifests) — 2026-10-29, C9
-- [ ] deployed; link previews and the snapshot record checked on the live host — R2
+- [x] deployed on `roadmap.`; the page, `/public/v1/roadmap` and `/public/v1/snapshot` answer from the live host; the signed record verifies (hash and `@mysten/sui` signature, from the public aggregator) — 2026-10-30, R2
+- [ ] link previews (Discord/Telegram/Bluesky unfurlers) checked on the live host — at the first announcement
 
 ### pre-mainnet
 - [ ] external review
@@ -199,3 +200,4 @@ all hold (copied from the fleet workflows).
 - 2026-10-29 — C8: the page (F3 RESOLVED); F4, F5 Positive; F6 recorded; invariants I3–I7. 42 unit and 14 browser tests; runtime image smoke ok.
 - 2026-10-29 — C8: the Walrus Site plan written (docs/WALRUS_SITE.md); nothing published; OQ2 recorded.
 - 2026-10-29 — C9: deployment prepared in the operator's workspace (route exposure proved on the rendered manifests); the two data routes it reads were exercised against the real public process in the local end-to-end run.
+- 2026-10-30 — R2: released (v0.0.1) and deployed; the snapshot record verified end to end on the live host.
