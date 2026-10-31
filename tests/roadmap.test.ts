@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatDate, formatDateTime, formatWindow } from '../src/lib/format.js'
-import { filterItems, parseRoadmap, parseSnapshot } from '../src/lib/roadmap.js'
+import { STATUS_LABEL, STATUS_SYMBOL, STATUS_TONE, filterItems, parseRoadmap, parseRoadmapSnapshot } from '../src/lib/roadmap.js'
 import { SHA, SIGNER, empty, noSnapshot, roadmap, snapshotResponse } from './support/fixtures.js'
 
 describe('the roadmap parser keeps only what the page shows', () => {
@@ -60,35 +59,29 @@ describe('the roadmap parser keeps only what the page shows', () => {
 
 describe('the snapshot parser', () => {
   it('reads the latest snapshot and the blob link', () => {
-    const s = parseSnapshot(snapshotResponse)!
+    const s = parseRoadmapSnapshot(snapshotResponse)!
     expect(s).toMatchObject({ network: 'testnet', sha256: SHA, signerAddress: SIGNER, blobId: 'Qc9aP0V6x3mYk2w1TnqL8sRZb4dEoFhJiUyXvCgA7MM' })
     expect(s.blobUrl).toBe('https://aggregator.example.org/v1/blobs/Qc9aP0V6x3mYk2w1TnqL8sRZb4dEoFhJiUyXvCgA7MM')
     expect(JSON.stringify(s)).not.toContain('object_id')
   })
 
   it('is null when there is none, or the response is wrong, or a link is not https', () => {
-    expect(parseSnapshot(noSnapshot)).toBeNull()
-    expect(parseSnapshot(null)).toBeNull()
-    expect(parseSnapshot({ snapshot: { ...snapshotResponse.snapshot, sha256: 'xyz' } })).toBeNull()
-    expect(parseSnapshot({ snapshot: { ...snapshotResponse.snapshot, signer_address: '0x12' } })).toBeNull()
-    expect(parseSnapshot({ ...snapshotResponse, blob_url: 'javascript:alert(1)' })!.blobUrl).toBeNull()
-    expect(parseSnapshot({ ...snapshotResponse, blob_url: 'http://plain.example.org/x' })!.blobUrl).toBeNull()
+    expect(parseRoadmapSnapshot(noSnapshot)).toBeNull()
+    expect(parseRoadmapSnapshot(null)).toBeNull()
+    expect(parseRoadmapSnapshot({ snapshot: { ...snapshotResponse.snapshot, sha256: 'xyz' } })).toBeNull()
+    expect(parseRoadmapSnapshot({ snapshot: { ...snapshotResponse.snapshot, signer_address: '0x12' } })).toBeNull()
+    expect(parseRoadmapSnapshot({ ...snapshotResponse, blob_url: 'javascript:alert(1)' })!.blobUrl).toBeNull()
+    expect(parseRoadmapSnapshot({ ...snapshotResponse, blob_url: 'http://plain.example.org/x' })!.blobUrl).toBeNull()
   })
 })
 
-describe('dates for people', () => {
-  it('shows instants in the visitor zone, naming it, and nothing for garbage', () => {
-    expect(formatDateTime('2026-07-01T08:30:00Z')).toMatch(/1 Jul 2026/)
-    expect(formatDateTime('2026-07-01T08:30:00Z')).toMatch(/[A-Z]{2,5}|GMT/)
-    expect(formatDateTime(null)).toBe('')
-    expect(formatDateTime('nope')).toBe('')
-    expect(formatDate('2027-03-01T12:00:00Z')).toBe('1 Mar 2027')
-  })
-
-  it('writes a window as a range or one open end', () => {
-    expect(formatWindow('2026-10-01T12:00:00Z', '2027-01-31T12:00:00Z')).toBe('1 Oct 2026 – 31 Jan 2027')
-    expect(formatWindow('2026-10-01T12:00:00Z', null)).toBe('From 1 Oct 2026')
-    expect(formatWindow(null, '2027-01-31T12:00:00Z')).toBe('Until 31 Jan 2027')
-    expect(formatWindow(null, null)).toBe('')
+describe('status badges', () => {
+  it('give every status a label, a tone and a symbol; the label carries the meaning', () => {
+    for (const status of ['planned', 'in_progress', 'done', 'cancelled'] as const) {
+      expect(STATUS_LABEL[status]).toBeTruthy()
+      expect(STATUS_TONE[status]).toBeTruthy()
+      expect(STATUS_SYMBOL[status]).toBeTruthy()
+    }
+    expect(STATUS_TONE).toEqual({ planned: 'neutral', in_progress: 'warn', done: 'ok', cancelled: 'danger' })
   })
 })

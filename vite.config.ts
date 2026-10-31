@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { defineConfig, loadEnv, type Plugin } from 'vite'
 import vue from '@vitejs/plugin-vue'
+import { themeInit, viteTarget } from '@meddleware/frontend-config/vite'
 
 // The Content-Security-Policy the production image sends (Dockerfile `ARG CSP`). `vite preview` sends the same one, so
 // the browser tests run under the real policy and a violation fails them (`upgrade-insecure-requests` is left out only
@@ -46,7 +47,8 @@ function meta(mode: string): Plugin {
 // In production the ingress routes /public/v1/roadmap and /public/v1/snapshot on this host to the hub's public process
 // (same origin, no CORS); in development they are proxied to a local `content-hub public`.
 export default defineConfig(({ mode }) => ({
-  plugins: [vue(), meta(mode)],
+  plugins: [vue(), themeInit({ default: 'light' }), meta(mode)],
+  build: { target: viteTarget() },
   server: {
     proxy: {
       '/public': { target: 'http://localhost:8080', changeOrigin: true },

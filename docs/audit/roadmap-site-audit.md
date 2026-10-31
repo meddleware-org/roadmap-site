@@ -25,7 +25,7 @@
 **Deployed by:** the instance's `post-bootstrap/content-hub/` (C9)
 **Build args:** VITE_SITE_NAME, VITE_SITE_DESCRIPTION, VITE_SITE_URL — not secret
 **Deployment status:** live on testnet (R2, 2026-10-30); 0.0.2 released, pinned by consensus (cosign valid) and deployed 2026-10-30
-**Review date:** 2026-10-29; 0.0.2 re-verified 2026-10-30 against screenshots (filter layout on phones fixed; deployed)
+**Review date:** 2026-10-29; 0.0.2 re-verified 2026-10-30 against screenshots (filter layout on phones fixed; deployed); 0.0.3 re-verified 2026-10-31 (Shared shell, tone badges, token-only styling and accessibility gates)
 **Reviewer:** Internal review
 **Severity ceiling:** Low — a static page of public data, no input, no credentials
 **Status:** C8 — the roadmap page implemented; 42 vitest tests; 14 Chromium tests (flows, link-preview tags, phone width, axe in every theme and season); lint, type-check, build, CSP and dist checks green; the runtime image built from this `dist` passes `scripts/smoke.sh`. The full image build waits for nothing unpublished (the site has no unpublished dependency)

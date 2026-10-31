@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.0.3 — 2026-10-31
+
+- Shared shell, tone badges, token-only styling and accessibility gates
+
 ## 0.0.2 — 2026-10-30
 
 - The status filter is an even two-by-two grid on a phone (it wrapped into ragged rows with empty cells) and a single compact row from 36em.

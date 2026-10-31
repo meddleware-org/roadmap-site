@@ -33,10 +33,9 @@ describe('the page', () => {
 describe('the roadmap view', () => {
   it('shows a loading state, then the phases with public wording, status and dates', async () => {
     const { w } = view(ok)
-    expect(w.text()).toContain('Loading the roadmap')
-    expect(w.attributes('aria-busy')).toBe('true')
+    expect(w.get('output').text()).toBe('Loading the roadmap…')
     await settle()
-    expect(w.attributes('aria-busy')).toBe('false')
+    expect(w.get('output').text()).toBe('')
     expect(w.findAll('h2').map((h) => h.text())).toEqual(['Foundations', 'Growth'])
     const items = w.findAll('article')
     expect(items.map((a) => a.find('h3').text())).toEqual(['Open the testnet', 'Mint opens', 'Docs site'])
@@ -80,7 +79,7 @@ describe('the roadmap view', () => {
   it('filters by status and says when nothing matches', async () => {
     const { w } = view(ok)
     await settle()
-    const radio = (label: string) => w.findAll('label.opt').find((l) => l.text().includes(label))!.find('input')
+    const radio = (label: string) => w.findAll('.mw-seg__item').find((l) => l.text().includes(label))!.get('input')
     await radio('Done').setValue(true)
     expect(w.findAll('article').map((a) => a.find('h3').text())).toEqual(['Open the testnet'])
     await radio('Planned').setValue(true)
@@ -94,7 +93,7 @@ describe('the roadmap view', () => {
     for (const i of onlyPlanned.phases[0]!.items) i.status = 'planned'
     const { w } = view((p) => (p === '/public/v1/roadmap' ? json(onlyPlanned) : json(noSnapshot)))
     await settle()
-    await w.findAll('label.opt').find((l) => l.text().includes('Done'))!.find('input').setValue(true)
+    await w.findAll('.mw-seg__item').find((l) => l.text().includes('Done'))!.get('input').setValue(true)
     expect(w.findAll('article')).toHaveLength(0)
     expect(w.text()).toContain('Nothing here matches the filter.')
   })

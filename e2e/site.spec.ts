@@ -1,29 +1,9 @@
 // The built site in Chromium against mocked public routes, under the production CSP, with no network. What these prove
 // beyond the component tests: the real fetch path, the CSP, the page at phone width, the link-preview tags a crawler
-// reads, and that nothing internal in a response reaches the screen.
-import AxeBuilder from '@axe-core/playwright'
-import { expect, test, type Page } from '@playwright/test'
-import { SIGNER, empty, noSnapshot, roadmap, snapshotResponse } from '../tests/support/fixtures.js'
-
-type Body = unknown
-async function open(page: Page, routes: { roadmap?: Body | number; snapshot?: Body | number } = {}) {
-  const problems: string[] = []
-  const requested: string[] = []
-  page.on('pageerror', (e) => problems.push(`error: ${e.message}`))
-  page.on('console', (m) => {
-    if (/content security policy|refused to/i.test(m.text())) problems.push(`csp: ${m.text()}`)
-  })
-  await page.route(/^https?:\/\/(?!(localhost|127\.0\.0\.1)[:/])/, (route) => route.abort())
-  await page.route('**/public/v1/**', (route) => {
-    const path = new URL(route.request().url()).pathname
-    requested.push(path)
-    const spec = path.endsWith('/roadmap') ? (routes.roadmap ?? roadmap) : (routes.snapshot ?? snapshotResponse)
-    if (typeof spec === 'number') return route.fulfill({ status: spec, body: 'down' })
-    return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(spec) })
-  })
-  await page.goto('/')
-  return { problems, requested }
-}
+// reads, and that nothing internal in a response reaches the screen. (The accessibility sweep is a11y.spec.ts.)
+import { expect, test } from '@playwright/test'
+import { SIGNER, empty, noSnapshot, roadmap } from '../tests/support/fixtures.js'
+import { open } from './open.js'
 
 test('shows the public roadmap, and only public wording', async ({ page }) => {
   const { problems, requested } = await open(page)
@@ -97,20 +77,3 @@ test('fits a phone without sideways scrolling', async ({ page }) => {
   expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(0)
   expect(problems).toEqual([])
 })
-
-for (const theme of ['light', 'dark'] as const) {
-  for (const season of ['spring', 'summer', 'autumn', 'winter'] as const) {
-    test(`no axe violations (${theme} · ${season})`, async ({ page }) => {
-      await open(page)
-      await expect(page.getByRole('heading', { level: 2, name: 'Foundations' })).toBeVisible()
-      await page.evaluate(([t, s]) => {
-        document.documentElement.setAttribute('data-theme', t)
-        document.documentElement.setAttribute('data-season', s)
-      }, [theme, season])
-      await page.getByText('Verifiable record of this roadmap').click()
-      const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa', 'best-practice']).analyze()
-      const summary = results.violations.map((v) => ({ id: v.id, nodes: v.nodes.slice(0, 4).map((n) => `${n.target.join(' ')} — ${n.failureSummary?.split('\n').slice(0, 3).join(' | ')}`) }))
-      expect(summary, JSON.stringify(summary, null, 2)).toEqual([])
-    })
-  }
-}

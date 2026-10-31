@@ -1,48 +1,35 @@
 <script setup lang="ts">
-import { formatDateTime } from '../lib/format.js'
-import type { Item } from '../lib/roadmap.js'
-import StatusPill from './StatusPill.vue'
+import { UiBadge, UiCard } from '@meddleware/ui'
+import { formatDateTime } from '@meddleware/web-utils'
+import { STATUS_LABEL, STATUS_SYMBOL, STATUS_TONE, type Item } from '../lib/roadmap.js'
 
 defineProps<{ item: Item }>()
 </script>
 
 <template>
-  <article class="item">
-    <h3 class="item-title">{{ item.title }}</h3>
-    <p class="item-meta">
-      <StatusPill :status="item.status" />
-      <span v-if="item.dueAt" class="item-due">
+  <UiCard as="article" plain :level="3" :title="item.title">
+    <p class="meta">
+      <UiBadge :tone="STATUS_TONE[item.status]" :symbol="STATUS_SYMBOL[item.status]">{{ STATUS_LABEL[item.status] }}</UiBadge>
+      <span v-if="item.dueAt">
         <template v-if="item.status === 'done'">Target was </template><template v-else>Planned for </template>
-        <time :datetime="item.dueAt">{{ formatDateTime(item.dueAt) }}</time>
+        <time :datetime="item.dueAt">{{ formatDateTime(item.dueAt, { empty: '' }) }}</time>
       </span>
     </p>
-    <p v-if="item.description" class="item-body">{{ item.description }}</p>
-  </article>
+    <p v-if="item.description" class="body">{{ item.description }}</p>
+  </UiCard>
 </template>
 
 <style scoped>
-.item {
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: var(--space-sm) var(--space-md);
-  background: var(--surface);
-}
-
-.item-title {
-  margin: 0 0 var(--space-3xs);
-  font-size: var(--font-size-lg);
-}
-
-.item-meta {
+.meta {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-xs);
   align-items: baseline;
-  margin: 0 0 var(--space-xs);
+  margin: 0;
   color: var(--muted);
 }
 
-.item-body {
+.body {
   margin: 0;
   white-space: pre-line;
   overflow-wrap: anywhere;
