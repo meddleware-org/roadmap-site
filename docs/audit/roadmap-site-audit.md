@@ -25,7 +25,7 @@
 **Runtime user:** 65534   **Runtime FS:** read-only
 **Deployed by:** the instance's `post-bootstrap/content-hub/` (C9)
 **Build args:** VITE_SITE_NAME, VITE_SITE_DESCRIPTION, VITE_SITE_URL — not secret
-**Deployment status:** live on testnet (R2, 2026-10-30); 0.0.2 released, pinned by consensus (cosign valid) and deployed 2026-10-30
+**Deployment status:** *(Current, 2026-11-05: `0.0.4` is released (image, CI green, signed) and deployed; `config/images.yaml` pins `sha256:39b3d734…c824` by consensus (quay.io and Docker Hub agree, cosign valid) and the running pod's image digest equals it; the public host answers 200 and the rendered footer links to `https://meddleware.co.uk/legal/`. The text below is the earlier history, kept as written.)* live on testnet (R2, 2026-10-30); 0.0.2 released, pinned by consensus (cosign valid) and deployed 2026-10-30
 **Review date:** 2026-10-29; 0.0.2 re-verified 2026-10-30 against screenshots (filter layout on phones fixed; deployed); 0.0.3 released 2026-10-31 (Shared shell, tone badges, token-only styling and accessibility gates); frontend-wave delta review 2026-11-01 (real review of the 2026-10-19 → 2026-11-01 changes; see the delta section)
 **Reviewer:** Internal review
 **Severity ceiling:** Low — a static page of public data, no input, no credentials
@@ -101,7 +101,7 @@ Even if a response gained an internal field (or was tampered with), it cannot be
 **Impact:** If the route is not exposed, or no snapshot exists, the note is simply absent; the roadmap is unaffected.
 **Remediation / evidence:** `tests/app.test.ts` ("stays quiet when there is none or it fails").
 
-### Frontend wave delta review (2026-11-01) — 0.0.3 reviewed · 0.0.4 prepared
+### Frontend wave delta review (2026-11-01) — 0.0.3 reviewed · 0.0.4 released and deployed 2026-11-05
 
 Scope: the changes since the last substantive entry (2026-10-30, 0.0.2, which fixed the phone filter layout from screenshots): 0.0.3 — the page rebuilt on `UiAppShell` and `@meddleware/ui` components (`StatusFilter` and `StatusPill` deleted; token-only styling), its date formatting moved to `@meddleware/web-utils` (`lib/format.ts` deleted), `lib/roadmap.ts` parsing tightened, and the five-browser sweep. The package is private (the image is the artefact). The release tool's "re-verified" marks for these releases recorded no review; this section is the review. Read: `RoadmapView.vue` (the two API reads), `lib/roadmap.ts` (`parseRoadmap`, `parseRoadmapSnapshot`: what is accepted and refused), `SnapshotNote.vue` (the verification note and its links), `main.ts`, the Dockerfile and CSP, the workflows and the tests; and, live, the two public documents it reads. Ran (with the locally packed `ui` 0.1.38, `design-tokens` 0.1.13, `web-utils` 0.0.2, `frontend-config` 0.0.2): the audit gate (0 not allowlisted; the two `extract-zip` advisories are allowlisted until 2027-01-31), `vue-tsc`, lint (stylelint, eslint, html-validate), `vitest` (4 files, 37 tests (the audit said 42 at 0.0.2: the date-format tests moved to web-utils with the code)), the production build and `check:csp` and `check:dist` (no inline script in the built page; no audit page in the build), `npm pack --dry-run` (not applicable: the package is private and ships as an image), and the browser suite on Chromium, Firefox, WebKit, a Pixel 7 and an iPhone 14 with the CI font (DejaVu Sans through fontconfig): **330 passed in 5.5 minutes**.
 
