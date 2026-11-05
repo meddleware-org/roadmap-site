@@ -5,10 +5,11 @@
 **Project type:** Vue app (static site)
 **Template:**
 
-- AUDIT_TEMPLATE.md (2026-10-08)
-- AUDIT_TEMPLATE_TS.md (2026-10-08)
-- AUDIT_TEMPLATE_VUE.md (2026-10-08)
+- AUDIT_TEMPLATE.md (2026-11-01)
+- AUDIT_TEMPLATE_TS.md (2026-11-01)
+- AUDIT_TEMPLATE_VUE.md (2026-11-01)
 - AUDIT_TEMPLATE_IMG.md (2026-10-08)
+- AUDIT_TEMPLATE_A11Y.md (2026-11-01)
 
 **Package manager / lockfile:** npm 11, package-lock.json committed
 **Module format:** ESM
@@ -25,7 +26,7 @@
 **Deployed by:** the instance's `post-bootstrap/content-hub/` (C9)
 **Build args:** VITE_SITE_NAME, VITE_SITE_DESCRIPTION, VITE_SITE_URL — not secret
 **Deployment status:** live on testnet (R2, 2026-10-30); 0.0.2 released, pinned by consensus (cosign valid) and deployed 2026-10-30
-**Review date:** 2026-10-29; 0.0.2 re-verified 2026-10-30 against screenshots (filter layout on phones fixed; deployed); 0.0.3 re-verified 2026-10-31 (Shared shell, tone badges, token-only styling and accessibility gates)
+**Review date:** 2026-10-29; 0.0.2 re-verified 2026-10-30 against screenshots (filter layout on phones fixed; deployed); 0.0.3 released 2026-10-31 (Shared shell, tone badges, token-only styling and accessibility gates); frontend-wave delta review 2026-11-01 (real review of the 2026-10-19 → 2026-11-01 changes; see the delta section)
 **Reviewer:** Internal review
 **Severity ceiling:** Low — a static page of public data, no input, no credentials
 **Status:** C8 — the roadmap page implemented; 42 vitest tests; 14 Chromium tests (flows, link-preview tags, phone width, axe in every theme and season); lint, type-check, build, CSP and dist checks green; the runtime image built from this `dist` passes `scripts/smoke.sh`. The full image build waits for nothing unpublished (the site has no unpublished dependency)
@@ -36,6 +37,8 @@
 
 A scaffold: the build, test, lint and release pipeline and the structure the next steps fill. The positive findings
 record the properties fixed now; the deferred ones name the step that delivers the rest. Nothing is published.
+
+**2026-11-01 update.** The page was rebuilt on the shared shell and its date helpers moved to web-utils. The review found nothing to fix: the two reads are bounded and validated, the page claims no verification it does not perform, and the four states pass the shared sweep on five browsers (F7, F8).
 
 ## Threat model / trust boundaries
 
@@ -97,6 +100,26 @@ Even if a response gained an internal field (or was tampered with), it cannot be
 **Issue:** The verifiable record needs `/public/v1/snapshot` on the same host, so the ingress for the roadmap host routes that exact path too (ARCHITECTURE.md §3).
 **Impact:** If the route is not exposed, or no snapshot exists, the note is simply absent; the roadmap is unaffected.
 **Remediation / evidence:** `tests/app.test.ts` ("stays quiet when there is none or it fails").
+
+### Frontend wave delta review (2026-11-01) — 0.0.3 reviewed · 0.0.4 prepared
+
+Scope: the changes since the last substantive entry (2026-10-30, 0.0.2, which fixed the phone filter layout from screenshots): 0.0.3 — the page rebuilt on `UiAppShell` and `@meddleware/ui` components (`StatusFilter` and `StatusPill` deleted; token-only styling), its date formatting moved to `@meddleware/web-utils` (`lib/format.ts` deleted), `lib/roadmap.ts` parsing tightened, and the five-browser sweep. The package is private (the image is the artefact). The release tool's "re-verified" marks for these releases recorded no review; this section is the review. Read: `RoadmapView.vue` (the two API reads), `lib/roadmap.ts` (`parseRoadmap`, `parseRoadmapSnapshot`: what is accepted and refused), `SnapshotNote.vue` (the verification note and its links), `main.ts`, the Dockerfile and CSP, the workflows and the tests; and, live, the two public documents it reads. Ran (with the locally packed `ui` 0.1.38, `design-tokens` 0.1.13, `web-utils` 0.0.2, `frontend-config` 0.0.2): the audit gate (0 not allowlisted; the two `extract-zip` advisories are allowlisted until 2027-01-31), `vue-tsc`, lint (stylelint, eslint, html-validate), `vitest` (4 files, 37 tests (the audit said 42 at 0.0.2: the date-format tests moved to web-utils with the code)), the production build and `check:csp` and `check:dist` (no inline script in the built page; no audit page in the build), `npm pack --dry-run` (not applicable: the package is private and ships as an image), and the browser suite on Chromium, Firefox, WebKit, a Pixel 7 and an iPhone 14 with the CI font (DejaVu Sans through fontconfig): **330 passed in 5.5 minutes**.
+
+### F7 — Positive: the page reads two public documents with a size cap and shows only what validates
+**Severity:** Positive
+**Where:** `src/RoadmapView.vue`, `src/lib/roadmap.ts`, `src/components/SnapshotNote.vue`
+**Evidence:** both reads go through `fetchJson` (web-utils 0.0.2: a timeout, `credentials: 'omit'` and, since this release, a default 1 MiB cap; the live documents are 2.1 KB and 1.1 KB, so the cap leaves about 500× headroom) and are parsed by `parseRoadmap` (`schema_version` 1 and a phase list, else null) and `parseRoadmapSnapshot` (a missing or unrecognised snapshot is "none yet", not an error); a snapshot's blob link is shown only when it is `https` and at most 500 characters and then goes through `safeHref`; the signer's account link goes through `suiExplorerUrl`. The snapshot is **not** verified by the page — it says how to (fetch the blob, compare its SHA-256, verify the personal-message signature, check the signer) — so nothing here claims a verification it did not do. The unit tests answer with real `Response` objects, so the bounded read path is the one under test. The live `/public/v1/snapshot` has the keys the parser expects (`schema`, `snapshot`, `blob_url`, `verify`), compared 2026-11-05.
+
+### F8 — Positive: the shared sweep covers every screen and passes on five browsers with the CI font
+**Severity:** Positive
+**Where:** e2e/a11y.spec.ts (`defineA11ySuite`, AAA `gate`)
+**Evidence:** four states — the roadmap, the verifiable-record section opened, an empty roadmap and a failing API (HTTP 503) — each at AA and AAA (gating) in all ten theme × season looks, at 320 px, 200% text, in forced colours, under reduced motion and by keyboard, on five browser projects: 330 tests passed with the CI font.
+
+### Delta notes (A11Y lens, `AUDIT_TEMPLATE_A11Y.md`)
+- **Support promise:** the shared browserslist (`@meddleware/frontend-config/browserslist-config`); build target through `viteTarget()`; compat lints on.
+- **Accessibility gates:** the shared sweep over four states (axe AA and AAA `gate`; 320 px reflow; 200% text; forced colours; reduced motion; keyboard incl. focus not obscured), Lighthouse CI on the production build, `check:csp` and `check:dist`, five browser projects in CI. Roadmap is light by default (brand choice, D103); the stored choice wins.
+- **Known exceptions:** none disabled; the 44 px enhanced target size, link purpose, reading order and screen-reader announcements are reviewed from screenshots (`npm run shots`), not automated.
+- **Supply chain:** `.github/audit-gate.mjs` with two dated `extract-zip` allowlist entries (dev-only, via `@lhci/cli`, expiry 2027-01-31, D104; OPERATOR_TASKS.md) and the `basic-ftp`/`tmp`/`zod` overrides; Dependabot (npm, Actions, Docker); `@meddleware/frontend-config` is a dev dependency (its audit F5).
 
 ## Section A — Invariant verification matrix
 
@@ -201,3 +224,4 @@ all hold (copied from the fleet workflows).
 - 2026-10-29 — C8: the Walrus Site plan written (docs/WALRUS_SITE.md); nothing published; OQ2 recorded.
 - 2026-10-29 — C9: deployment prepared in the operator's workspace (route exposure proved on the rendered manifests); the two data routes it reads were exercised against the real public process in the local end-to-end run.
 - 2026-10-30 — R2: released (v0.0.1) and deployed; the snapshot record verified end to end on the live host.
+- 2026-11-01 — frontend-wave delta review of 0.0.3. Read the two API reads and their parsers, the verification note, the build configuration, the Dockerfile and CSP, the workflows and the tests; ran the gates and the five-browser suite with the CI font (330 passed in 5.5 minutes). Nothing to fix in the page; the unit tests already answered with real `Response` objects, so ui's and web-utils' bounded-read changes needed no test change here. F7–F8 recorded as Positive. The release tool's bare "re-verified" marks were reworded to "released". `**Template:**` dates reconciled to the 2026-11-01 registry (TS/VUE changes add rows; the VUE colour row moved to A11Y, applied in full here) with no disposition change.
