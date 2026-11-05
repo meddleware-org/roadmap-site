@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.0.4 — 2026-11-05
+
+### Changed
+
+- Dependency alignment: `@meddleware/ui` ^0.1.38 (form-field edge contrast, sticky-offset and focus-not-obscured fixes), `@meddleware/design-tokens` ^0.1.13, `@meddleware/web-utils` ^0.0.2 and `@meddleware/frontend-config` ^0.0.2.
+
 ## 0.0.3 — 2026-10-31
 
 - Shared shell, tone badges, token-only styling and accessibility gates
