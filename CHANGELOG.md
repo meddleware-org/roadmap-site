@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.0.6 — 2026-11-06
+
+### Changed
+
+- Image base `static-server` 0.1.12 and the dev tools of the Dependabot groups merged on 2026-11-06.
+
 ## 0.0.5 — 2026-11-06
 
 ### Changed
