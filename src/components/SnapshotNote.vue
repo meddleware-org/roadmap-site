@@ -1,6 +1,7 @@
 <script setup lang="ts">
 // The verifiable record: the roadmap is also signed and stored on Walrus, so anyone can check it without trusting this
-// site. Shown only when the hub has produced a snapshot.
+// site. Shown only when the hub has produced a signed copy. The wording matches the hub's snapshot reference
+// (content-hub-service docs/SNAPSHOT.md): the page says how to check; it checks nothing itself.
 import { computed } from 'vue'
 import { CopyableAddress, ExplorerLink } from '@meddleware/ui'
 import { formatDateTime, safeHref, suiExplorerUrl } from '@meddleware/web-utils'
@@ -14,9 +15,15 @@ const network = computed(() => (['mainnet', 'testnet', 'devnet'] as const).find(
 <template>
   <details class="record">
     <summary>Verifiable record of this roadmap</summary>
-    <p>
-      A signed copy of this roadmap was recorded on {{ formatDateTime(snapshot.generatedAt, { empty: '' }) }} ({{ snapshot.network }}). You can check it
-      without trusting this website.
+    <p v-if="snapshot.blobId">
+      A signed copy of this roadmap was stored on Walrus {{ snapshot.network }} (a decentralised storage network) on
+      <time :datetime="snapshot.generatedAt">{{ formatDateTime(snapshot.generatedAt, { empty: '' }) }}</time>. You can check it without trusting this
+      website.
+    </p>
+    <p v-else>
+      A signed record of this roadmap was made on
+      <time :datetime="snapshot.generatedAt">{{ formatDateTime(snapshot.generatedAt, { empty: '' }) }}</time>
+      but its document is not on Walrus, so it cannot be checked yet.
     </p>
     <dl class="facts">
       <dt>Signed by</dt>
@@ -39,10 +46,19 @@ const network = computed(() => (['mainnet', 'testnet', 'devnet'] as const).find(
       <dd v-if="snapshot.expiresAt"><time :datetime="snapshot.expiresAt">{{ formatDateTime(snapshot.expiresAt, { empty: '' }) }}</time></dd>
     </dl>
     <p>
-      To verify: fetch the blob, check that its SHA-256 is the value above, then verify the signature over the blob's bytes as a Sui
-      personal message (for example with <code>verifyPersonalMessageSignature</code> from <code>@mysten/sui</code>) and check that the
-      signing address is the one the operator has published.
+      The signer is the account whose key signed the document. The SHA-256 is a fingerprint worked out from the document: changing a single
+      character changes it.
     </p>
+    <p v-if="snapshot.blobId">To check the record yourself:</p>
+    <ol v-if="snapshot.blobId">
+      <li>Fetch the stored document from any Walrus aggregator (a server that serves Walrus data), using the name shown after “Stored on Walrus as”.</li>
+      <li>Check that its SHA-256 is the value above.</li>
+      <li>
+        Verify the signature over the document’s bytes as a Sui personal message, for example with <code>verifyPersonalMessageSignature</code>
+        from <code>@mysten/sui</code>.
+      </li>
+      <li>Check that the signing address is the signer you expect: an address shown only on this page cannot vouch for itself.</li>
+    </ol>
   </details>
 </template>
 

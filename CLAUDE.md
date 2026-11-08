@@ -14,10 +14,37 @@ The public roadmap site. See [README.md](README.md).
 - **Nothing here re-implements a ui or web-utils piece.** Cards, badges, the filter, the empty and loading text, the copy buttons and explorer links are `@meddleware/ui`; dates, the bounded fetch and the explorer URL are `@meddleware/web-utils`. The site's own code is the parser, the labels and the page.
 - **Link previews come from the static HTML** (the meta plugin in `vite.config.ts`, from build arguments), not from script.
 - **Untrusted text is text.** Titles and descriptions are rendered as text (`{{ }}`), never with `v-html`.
-- **No operator data** in the repository: the site name is a build argument; `robots.txt`/`llms.txt` are generic
+- **No deployment-specific data** in the repository: the site name is a build argument; `robots.txt`/`llms.txt` are generic
   defaults a deployment replaces.
+- **Words for the public (D117).** The page says "phase", "item", "signer" and "SHA-256" only with a one-line explanation beside them, never "operator", a build variable, a script name or a placeholder; "Meddleware" is the one spelling. The verification steps in `SnapshotNote.vue` match the hub's `docs/SNAPSHOT.md` (fetch the blob, compare the SHA-256, verify the personal-message signature, check the signer is the one you expect); the signer address shown is public data from the hub and is never hard-coded here.
+- **No `AppToolShell`.** The page keeps `UiAppShell` with its own visible `h1`: the tool shell hides the heading and adds the docs and developer links of a tool, and this public page has neither.
 - Fleet UI rules: semantic markup (one `h1`, content in `main`), no inline styles, design-token colours only,
   html-validate and the a11y lint gate.
+
+## Layout
+
+```text
+src/main.ts            bootstrap (tokens, seasons, the ui reset, App)
+src/App.vue            the page shell (UiAppShell, header with the colour-mode control, footer)
+src/RoadmapView.vue    loads the two public routes; loading / error / empty states; the filter (UiSegmentedControl)
+src/lib/roadmap.ts     the response parsers (the boundary), status labels, tones and symbols, filtering
+src/components/        PhaseSection, ItemCard (a UiCard with a UiBadge), SnapshotNote (CopyableAddress, ExplorerLink)
+vite.config.ts         `meddlewareApp` (frontend-config) plus the meta plugin (title, description, Open Graph from build arguments) and the preview CSP
+tests/, e2e/           unit and component tests; browser tests (tests/support/fixtures.ts is shared; e2e/open.ts mocks the routes; a11y.spec.ts is the shared accessibility sweep)
+lighthouserc.cjs       Lighthouse CI (accessibility 100, best practices, bundle budgets)
+public/                favicon, generic robots.txt and llms.txt (a deployment replaces both)
+```
+
+Shared tooling comes from `@meddleware/frontend-config`: `mw-audit-gate`, `mw-third-party-licenses`, `mw-check-csp-inline` (CSP profile `static-strict`, set in package.json `"meddleware"`), `mw-sync` (keeps `.dockerignore`, the lint configs, `dependabot.yml`, the allowlist and the Dockerfile CSP aligned: `npx mw-sync --check`).
+
+## Commands
+
+```bash
+npm ci && npm run type-check && npm run lint && npm test && npm run build && npm run check:csp && npm run check:dist && npm run check:licenses && npx mw-sync --check
+npx playwright install chromium && npm run test:e2e   # E2E_BROWSERS=all for the five browser projects
+npm run lhci
+docker build -t roadmap-site:ci . && bash scripts/smoke.sh roadmap-site:ci
+```
 
 ## Looking at it
 
@@ -29,6 +56,6 @@ into ragged rows on a phone (now an even two-by-two grid below 36em). Nothing is
 
 `npm test` (vitest): the parser (what is kept, dropped and bounded), dates, every state of the page against a mocked
 fetch (loading, rendered, filter, empty, error and retry, timeout, hostile text, the snapshot note, only two routes and no
-credentials), design tokens, the CSP inline-script check. `npm run test:e2e` (Playwright, the built page, production CSP,
+credentials), design tokens, the wording for the public. `npm run test:e2e` (Playwright, the built page, production CSP,
 mocked routes): flows, link-preview tags, phone width, and the shared accessibility sweep (`e2e/a11y.spec.ts`, from `@meddleware/frontend-config/a11y`): axe at WCAG 2.2 AA and AAA (gating) in every colour mode × season for the roadmap, its record open, the empty page and the error page, then reflow at 320 px, 200% text, forced colours, reduced motion and the keyboard. `E2E_BROWSERS=all` runs five browsers (CI does). `npm run lhci`: Lighthouse (accessibility 100). `npm run check:dist`:
-link-preview tags present, no test support. `scripts/smoke.sh` probes the built image.
+link-preview tags present, no test support (`scripts/check-dist.mjs`, specific to this site). `scripts/smoke.sh` probes the built image.

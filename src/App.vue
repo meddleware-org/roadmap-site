@@ -1,5 +1,8 @@
 <script setup lang="ts">
 // The public roadmap page. The data is read by RoadmapView from this host's `/public/v1/roadmap`.
+// Not AppToolShell: that frame hides the page heading and puts the tool's name in the header, with the docs and developer
+// links of a tool in the footer. This is a public page of its own: its h1 is visible and the deployment names it (VITE_SITE_NAME),
+// and it has no documentation pages to link to.
 import { AppFooter, AppHeader, ColorModeControl, CopyrightLine, UiAppShell, useColorMode } from '@meddleware/ui'
 import RoadmapView from './RoadmapView.vue'
 
@@ -19,7 +22,7 @@ const NAME = import.meta.env.VITE_SITE_NAME || 'Roadmap'
     </template>
 
     <h1>{{ NAME }}</h1>
-    <p class="lede">What is planned, in progress and done.</p>
+    <p class="lede">What is planned, in progress and done. The work is grouped into phases (stages of the plan); each phase lists its items (single pieces of work) with their status.</p>
     <RoadmapView />
 
     <template #footer>

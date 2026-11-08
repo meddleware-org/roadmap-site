@@ -4,4 +4,4 @@
 // config with `require`; Node loads the ES module factory through it.)
 const { lighthouseConfig } = require('@meddleware/frontend-config/lighthouserc')
 
-module.exports = lighthouseConfig({ port: 4292 })
+module.exports = lighthouseConfig({ port: 4297 })

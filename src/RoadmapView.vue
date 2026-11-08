@@ -1,5 +1,5 @@
 <script setup lang="ts">
-// The roadmap: phases and items an operator has made public, read from the hub's public route on this host. Public
+// The roadmap: the phases and items that have been made public, read from the hub's public route on this host. Public
 // wording only; no task detail exists in the response, and the parser keeps only the fields shown.
 import { computed, onMounted, ref } from 'vue'
 import { UiButton, UiEmptyState, UiLiveStatus, UiNotice, UiSegmentedControl } from '@meddleware/ui'
@@ -53,7 +53,7 @@ const empty = computed(() => roadmap.value !== null && roadmap.value.phases.leng
   <UiLiveStatus label="Roadmap" :message="loading ? 'Loading the roadmap…' : ''" />
   <template v-if="!loading && roadmap">
     <p v-if="roadmap.updatedAt" class="updated">Last updated <time :datetime="roadmap.updatedAt">{{ formatDateTime(roadmap.updatedAt, { empty: '' }) }}</time></p>
-    <UiEmptyState v-if="empty">Nothing has been published yet. Check back soon.</UiEmptyState>
+    <UiEmptyState v-if="empty">Nothing has been published yet. Phases and items appear here once they are made public.</UiEmptyState>
     <template v-else>
       <UiSegmentedControl v-model="filter" :options="FILTERS" label="Show items that are" layout="grid" />
       <PhaseSection v-for="p in roadmap.phases" :key="p.id" :phase="p" :filter="filter" />

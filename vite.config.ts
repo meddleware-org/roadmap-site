@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { defineConfig, loadEnv, type Plugin } from 'vite'
 import vue from '@vitejs/plugin-vue'
-import { themeInit, viteTarget } from '@meddleware/frontend-config/vite'
+import { meddlewareApp } from '@meddleware/frontend-config/vite'
 
 // The Content-Security-Policy the production image sends (Dockerfile `ARG CSP`). `vite preview` sends the same one, so
 // the browser tests run under the real policy and a violation fails them (`upgrade-insecure-requests` is left out only
@@ -18,17 +18,21 @@ const csp = imageCsp()
 
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;')
 
-// The page's title, description, Open Graph and Twitter tags come from build arguments (no operator data in the
+// The page's title, description, Open Graph and Twitter tags come from build arguments (no deployment-specific data in the
 // repository). Link previews read the static HTML, so these are fixed at build time; the canonical link and `og:url`
 // appear only when VITE_SITE_URL (an https address) is given.
-function meta(mode: string): Plugin {
-  const env = loadEnv(mode, process.cwd(), 'VITE_')
-  const name = env.VITE_SITE_NAME || 'Roadmap'
-  const description = env.VITE_SITE_DESCRIPTION || 'Public roadmap: what is planned, in progress and done.'
-  const url = /^https:\/\/[^\s"<>]+$/.test(env.VITE_SITE_URL ?? '') ? env.VITE_SITE_URL!.replace(/\/$/, '') + '/' : ''
+function meta(): Plugin {
+  let mode = 'production'
   return {
     name: 'roadmap-meta',
+    configResolved(config) {
+      mode = config.mode
+    },
     transformIndexHtml(html) {
+      const env = loadEnv(mode, process.cwd(), 'VITE_')
+      const name = env.VITE_SITE_NAME || 'Roadmap'
+      const description = env.VITE_SITE_DESCRIPTION || 'Public roadmap: what is planned, in progress and done.'
+      const url = /^https:\/\/[^\s"<>]+$/.test(env.VITE_SITE_URL ?? '') ? env.VITE_SITE_URL!.replace(/\/$/, '') + '/' : ''
       const tags = [
         ['title', `<title>${esc(name)}</title>`],
         ['description', `<meta name="description" content="${esc(description)}" />`],
@@ -45,14 +49,16 @@ function meta(mode: string): Plugin {
 }
 
 // In production the ingress routes /public/v1/roadmap and /public/v1/snapshot on this host to the hub's public process
-// (same origin, no CORS); in development they are proxied to a local `content-hub public`.
-export default defineConfig(({ mode }) => ({
-  plugins: [vue(), themeInit({ default: 'light' }), meta(mode)],
-  build: { target: viteTarget() },
-  server: {
-    proxy: {
-      '/public': { target: 'http://localhost:8080', changeOrigin: true },
+// (same origin, no CORS); in development they are proxied to a local `content-hub public`. The site has no wallet. Light is
+// its brand default (a saved choice wins).
+export default defineConfig(
+  meddlewareApp({
+    plugins: [vue(), meta()],
+    theme: 'light',
+    wallet: false,
+    config: {
+      server: { proxy: { '/public': { target: 'http://localhost:8080', changeOrigin: true } } },
+      preview: { headers: csp ? { 'Content-Security-Policy': csp } : {} },
     },
-  },
-  preview: { headers: csp ? { 'Content-Security-Policy': csp } : {} },
-}))
+  }),
+)

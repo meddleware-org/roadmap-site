@@ -26,6 +26,24 @@ test('filters, and shows the verifiable record', async ({ page }) => {
   await page.getByText('Verifiable record of this roadmap').click()
   await expect(page.getByText(SIGNER)).toBeVisible()
   await expect(page.getByRole('link', { name: /Qc9aP0V6x3mYk2w1/ })).toHaveAttribute('href', /^https:\/\/aggregator\.example\.org\/v1\/blobs\//)
+  // The steps to check the record are a numbered list in plain words, and the terms are explained beside the facts.
+  await expect(page.locator('details.record ol > li')).toHaveCount(4)
+  await expect(page.locator('details.record')).toContainText('The signer is the account whose key signed the document.')
+  await expect(page.locator('details.record')).toContainText('a decentralised storage network')
+  expect(problems).toEqual([])
+})
+
+test('reads in order for the public: headings in sequence, dates as times, no leftover build or maintainer words', async ({ page }) => {
+  const { problems } = await open(page)
+  await page.getByText('Verifiable record of this roadmap').click()
+  // h1, then one h2 per phase, then one h3 per item: no level is skipped.
+  const levels = await page.locator('main :is(h1, h2, h3, h4)').evaluateAll((hs) => hs.map((h) => Number(h.tagName.slice(1))))
+  expect(levels).toEqual([1, 2, 3, 3, 3, 2])
+  await expect(page.locator('main time')).not.toHaveCount(0)
+  await expect(page.locator('main br')).toHaveCount(0)
+  await expect(page.getByRole('banner')).toBeVisible()
+  const body = await page.locator('body').innerText()
+  for (const word of [/operator/i, /VITE_/, /coming soon/i, /MeddleWare/, /snapshot/i]) expect(body).not.toMatch(word)
   expect(problems).toEqual([])
 })
 

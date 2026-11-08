@@ -1,10 +1,10 @@
 # roadmap-site
 
-The public roadmap of a content hub: the phases and items an operator has made public, with their status. A Vue 3
+The public roadmap of a content hub: the phases and items that have been made public, with their status. A Vue 3
 site on `@meddleware/ui`, served by static-server. Data: `GET /public/v1/roadmap` on the same host, which the
 ingress routes to the hub's public process ([content-hub-service](https://github.com/meddleware-org/content-hub-service)).
 
-**Status (0.0.2):** the roadmap page works against the hub's public routes.
+**Status:** the roadmap page works against the hub's public routes.
 
 - **What it shows:** phases (public name, description, date window) and their items (title, description, status as a word
   with a symbol, the public date), with a status filter, loading / error-with-retry / empty states, and, when the hub has
@@ -17,7 +17,7 @@ ingress routes to the hub's public process ([content-hub-service](https://github
 - **Link previews and search:** the title, description and Open Graph / Twitter tags are in the static HTML from build
   arguments (crawlers do not run the page's script); the canonical link and `og:url` appear when `VITE_SITE_URL` is set.
 - **Accessible and small:** semantic landmarks, statuses are words first, WCAG 2.2 AA in every theme and season (axe in the
-  browser tests), works at phone width, about 31 kB of JavaScript gzipped.
+  browser tests), works at phone width, about 35 kB of JavaScript gzipped.
 
 ## Build-time configuration
 
@@ -35,6 +35,7 @@ ingress routes to the hub's public process ([content-hub-service](https://github
 npm ci
 npm run dev            # http://localhost:5173, /public proxied to a local `content-hub public` on :8080
 npm run type-check && npm run lint && npm test && npm run build && npm run check:csp && npm run check:dist
+npx mw-sync --check    # shared files match @meddleware/frontend-config's templates
 npx playwright install chromium && npm run test:e2e   # the built page in a browser, mocked routes, production CSP, axe
 docker build -t roadmap-site:dev . && bash scripts/smoke.sh roadmap-site:dev
 ```
