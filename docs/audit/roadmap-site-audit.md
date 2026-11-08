@@ -195,7 +195,7 @@ all hold (copied from the fleet workflows).
 - [ ] link previews (Discord/Telegram/Bluesky unfurlers) checked on the live host — at the first announcement
 
 ### pre-mainnet
-- [ ] external review
+- [ ] external review (ADR-0009 gate G4: not a launch gate; covered by redeploy and the audit pass)
 
 ## Cross-project themes
 
