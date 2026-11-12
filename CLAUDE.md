@@ -17,7 +17,7 @@ The public roadmap site. See [README.md](README.md).
 - **No deployment-specific data** in the repository: the site name is a build argument; `robots.txt`/`llms.txt` are generic
   defaults a deployment replaces.
 - **Words for the public (D117).** The page says "phase", "item", "signer" and "SHA-256" only with a one-line explanation beside them, never "operator", a build variable, a script name or a placeholder; "Meddleware" is the one spelling. The verification steps in `SnapshotNote.vue` match the hub's `docs/SNAPSHOT.md` (fetch the blob, compare the SHA-256, verify the personal-message signature, check the signer is the one you expect); the signer address shown is public data from the hub and is never hard-coded here.
-- **No `AppToolShell`.** The page keeps `UiAppShell` with its own visible `h1`: the tool shell hides the heading and adds the docs and developer links of a tool, and this public page has neither.
+- **`AppToolShell`, without its extras.** The page uses the shared shell for the header (the Meddleware mark beside the deployment's name, `title` = `VITE_SITE_NAME`, default "Roadmap"), the colour-mode control and the footer with the copyright line. It passes `:page-heading="false"` (the page has its own visible `h1`, named by the deployment) and `:docs-url="false" :dev-url="false"` (a public page has no documentation pages, so the footer has no docs or developer link).
 - Fleet UI rules: semantic markup (one `h1`, content in `main`), no inline styles, design-token colours only,
   html-validate and the a11y lint gate.
 
@@ -25,14 +25,14 @@ The public roadmap site. See [README.md](README.md).
 
 ```text
 src/main.ts            bootstrap (tokens, seasons, the ui reset, App)
-src/App.vue            the page shell (UiAppShell, header with the colour-mode control, footer)
+src/App.vue            the page shell (AppToolShell: mark and site name, colour-mode control, footer; the page's own h1)
 src/RoadmapView.vue    loads the two public routes; loading / error / empty states; the filter (UiSegmentedControl)
 src/lib/roadmap.ts     the response parsers (the boundary), status labels, tones and symbols, filtering
 src/components/        PhaseSection, ItemCard (a UiCard with a UiBadge), SnapshotNote (CopyableAddress, ExplorerLink)
-vite.config.ts         `meddlewareApp` (frontend-config) plus the meta plugin (title, description, Open Graph from build arguments) and the preview CSP
+vite.config.ts         `meddlewareApp` (frontend-config; `name` = the deployment's name, which names the web manifest and emits the brand icon set: favicon, apple-touch-icon, 192/512 icons, `site.webmanifest`, links injected, so no `public/favicon.*` and no icon `<link>`) plus the meta plugin (title, description, Open Graph from build arguments) and the preview CSP
 tests/, e2e/           unit and component tests; browser tests (tests/support/fixtures.ts is shared; e2e/open.ts mocks the routes; a11y.spec.ts is the shared accessibility sweep)
 lighthouserc.cjs       Lighthouse CI (accessibility 100, best practices, bundle budgets)
-public/                favicon, generic robots.txt and llms.txt (a deployment replaces both)
+public/                generic robots.txt and llms.txt (a deployment replaces both); no icon: the brand icon set is generated
 ```
 
 Shared tooling comes from `@meddleware/frontend-config`: `mw-audit-gate`, `mw-third-party-licenses`, `mw-check-csp-inline` (CSP profile `static-strict`, set in package.json `"meddleware"`), `mw-sync` (keeps `.dockerignore`, the lint configs, `dependabot.yml`, the allowlist and the Dockerfile CSP aligned: `npx mw-sync --check`).
@@ -40,7 +40,7 @@ Shared tooling comes from `@meddleware/frontend-config`: `mw-audit-gate`, `mw-th
 ## Commands
 
 ```bash
-npm ci && npm run type-check && npm run lint && npm test && npm run build && npm run check:csp && npm run check:dist && npm run check:licenses && npx mw-sync --check
+npm ci && npm run type-check && npm run lint && npm test && npm run build && npm run check:csp && npm run check:dist && npx vitest run tests/dist.test.ts && npm run check:licenses && npx mw-sync --check
 npx playwright install chromium && npm run test:e2e   # E2E_BROWSERS=all for the five browser projects
 npm run lhci
 docker build -t roadmap-site:ci . && bash scripts/smoke.sh roadmap-site:ci

@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.0.8 — 2026-11-12
+
+### Changed
+
+- The header shows the Meddleware mark beside the site name, and the browser tab, home-screen and web-manifest icons are the shared brand icon set (`@meddleware/ui` ^0.1.42, `@meddleware/frontend-config` ^0.0.8). The page is now framed by `AppToolShell` (no docs or developer links, no second heading); the page itself looks the same. The app keeps no icon of its own: `public/favicon.svg` and the `<link rel="icon">` in `index.html` are removed, and `meddlewareApp` (`name` is the deployment's site name, default "Roadmap") emits `favicon.svg`, `favicon.ico`, `apple-touch-icon.png`, `icon-192.png`, `icon-512.png` and `site.webmanifest` and injects the links. The title, description and Open Graph tags are unchanged.
+- No third-party fonts, scripts, styles, images or analytics (the page reads only its own host). CI workflows set `DO_NOT_TRACK=1`.
+- Internal: `scripts/check-dist.mjs` also checks the icon set, one svg icon link and the manifest link. New tests: the mark in the header and no docs or developer links, no icon of the app's own, and (over the built `dist/`, run in CI after the build) the icon set once per page, no font file or font host, no third-party load and no origin beyond this site, the explorer and legal links and library namespaces.
+
 ## 0.0.7 — 2026-11-08
 
 ### Changed

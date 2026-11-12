@@ -1,3 +1,4 @@
+import { existsSync, readFileSync } from 'node:fs'
 import { flushPromises, mount } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
 import App from '../src/App.vue'
@@ -27,6 +28,23 @@ describe('the page', () => {
     const w = mount(App)
     expect(w.findAll('h1')).toHaveLength(1)
     expect(w.find('main h1').text()).toBe('Roadmap')
+  })
+})
+
+describe('the shell', () => {
+  it('shows the Meddleware mark beside the site name in the header, and no docs or developer links', () => {
+    const w = mount(App)
+    const brand = w.get('header')
+    expect(brand.find('svg').exists()).toBe(true)
+    expect(brand.text()).toContain('Roadmap')
+    expect(w.find('footer').text()).toContain('Meddleware')
+    expect(w.find('footer a[href*="docs.meddleware"]').exists()).toBe(false)
+    expect(w.find('footer a[href*="meddleware.dev"]').exists()).toBe(false)
+  })
+
+  it('keeps no icon of its own: the icon links come from the shared brand set at build time', () => {
+    expect(readFileSync('index.html', 'utf8')).not.toMatch(/rel="(?:shortcut )?icon"|apple-touch-icon/)
+    expect(existsSync('public/favicon.svg')).toBe(false)
   })
 })
 

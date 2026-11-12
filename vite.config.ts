@@ -16,6 +16,10 @@ function imageCsp(): string | undefined {
 }
 const csp = imageCsp()
 
+// The deployment's name (VITE_SITE_NAME) falls back to this. It is the page title, the header and the web manifest's name.
+const DEFAULT_NAME = 'Roadmap'
+const siteName = (mode: string) => loadEnv(mode, process.cwd(), 'VITE_').VITE_SITE_NAME || DEFAULT_NAME
+
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;')
 
 // The page's title, description, Open Graph and Twitter tags come from build arguments (no deployment-specific data in the
@@ -30,7 +34,7 @@ function meta(): Plugin {
     },
     transformIndexHtml(html) {
       const env = loadEnv(mode, process.cwd(), 'VITE_')
-      const name = env.VITE_SITE_NAME || 'Roadmap'
+      const name = siteName(mode)
       const description = env.VITE_SITE_DESCRIPTION || 'Public roadmap: what is planned, in progress and done.'
       const url = /^https:\/\/[^\s"<>]+$/.test(env.VITE_SITE_URL ?? '') ? env.VITE_SITE_URL!.replace(/\/$/, '') + '/' : ''
       const tags = [
@@ -51,14 +55,16 @@ function meta(): Plugin {
 // In production the ingress routes /public/v1/roadmap and /public/v1/snapshot on this host to the hub's public process
 // (same origin, no CORS); in development they are proxied to a local `content-hub public`. The site has no wallet. Light is
 // its brand default (a saved choice wins).
-export default defineConfig(
+export default defineConfig((env) =>
   meddlewareApp({
     plugins: [vue(), meta()],
+    // The web manifest carries the deployment's name, like the title and the header.
+    name: siteName(env.mode),
     theme: 'light',
     wallet: false,
     config: {
       server: { proxy: { '/public': { target: 'http://localhost:8080', changeOrigin: true } } },
       preview: { headers: csp ? { 'Content-Security-Policy': csp } : {} },
     },
-  }),
+  })(env),
 )
