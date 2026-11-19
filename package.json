@@ -1,6 +1,6 @@
 {
   "name": "roadmap-site",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "private": true,
   "description": "Public roadmap site of the content hub: what is planned, in progress and done. Vue 3 on @meddleware/ui, served by static-server.",
   "license": "0BSD",
