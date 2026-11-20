@@ -59,3 +59,7 @@ fetch (loading, rendered, filter, empty, error and retry, timeout, hostile text,
 credentials), design tokens, the wording for the public. `npm run test:e2e` (Playwright, the built page, production CSP,
 mocked routes): flows, link-preview tags, phone width, and the shared accessibility sweep (`e2e/a11y.spec.ts`, from `@meddleware/frontend-config/a11y`): axe at WCAG 2.2 AA and AAA (gating) in every colour mode × season for the roadmap, its record open, the empty page and the error page, then reflow at 320 px, 200% text, forced colours, reduced motion and the keyboard. `E2E_BROWSERS=all` runs five browsers (CI does). `npm run lhci`: Lighthouse (accessibility 100). `npm run check:dist`:
 link-preview tags present, no test support (`scripts/check-dist.mjs`, specific to this site). `scripts/smoke.sh` probes the built image.
+
+## Interoperability
+
+- [docs/INTEROP.md](docs/INTEROP.md): the standards this project speaks, what is planned, where to extend it, and what proves each claim.
