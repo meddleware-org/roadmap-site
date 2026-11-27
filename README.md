@@ -31,6 +31,8 @@ ingress routes to the hub's public process ([content-hub-service](https://github
 
 ## Development
 
+How to run the checks and propose a change: [CONTRIBUTING.md](CONTRIBUTING.md).
+
 ```bash
 npm ci
 npm run dev            # http://localhost:5173, /public proxied to a local `content-hub public` on :8080

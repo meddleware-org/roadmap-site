@@ -5,6 +5,7 @@ import { expect, test } from '@playwright/test'
 import { SIGNER, empty, noSnapshot, roadmap } from '../tests/support/fixtures.js'
 import { open } from './open.js'
 
+// The roadmap shows, with public wording only.
 test('shows the public roadmap, and only public wording', async ({ page }) => {
   const { problems, requested } = await open(page)
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Roadmap')
@@ -17,6 +18,7 @@ test('shows the public roadmap, and only public wording', async ({ page }) => {
   expect(problems).toEqual([])
 })
 
+// The filter and the verifiable record.
 test('filters, and shows the verifiable record', async ({ page }) => {
   const { problems } = await open(page)
   await page.getByText('Done', { exact: true }).click()
@@ -33,6 +35,7 @@ test('filters, and shows the verifiable record', async ({ page }) => {
   expect(problems).toEqual([])
 })
 
+// The page reads in order for a person.
 test('reads in order for the public: headings in sequence, dates as times, no leftover build or maintainer words', async ({ page }) => {
   const { problems } = await open(page)
   await page.getByText('Verifiable record of this roadmap').click()
@@ -47,6 +50,7 @@ test('reads in order for the public: headings in sequence, dates as times, no le
   expect(problems).toEqual([])
 })
 
+// Empty and failing servers say so.
 test('an empty roadmap and a failing server each say so', async ({ page }) => {
   await open(page, { roadmap: empty, snapshot: noSnapshot })
   await expect(page.getByText('Nothing has been published yet')).toBeVisible()
@@ -63,6 +67,7 @@ test('an empty roadmap and a failing server each say so', async ({ page }) => {
   await expect(failing.getByRole('heading', { level: 2, name: 'Foundations' })).toBeVisible()
 })
 
+// A hostile response is shown as text.
 test('a hostile response is shown as text', async ({ page }) => {
   const hostile = structuredClone(roadmap)
   hostile.phases[0]!.items[0]!.title = '<img src=x onerror="window.pwned=1">'
@@ -75,6 +80,7 @@ test('a hostile response is shown as text', async ({ page }) => {
   expect(problems).toEqual([])
 })
 
+// The link-preview tags.
 test('the built page carries the tags a link preview reads', async ({ page, request }) => {
   await open(page)
   const html = await (await request.get('/')).text()
@@ -87,6 +93,7 @@ test('the built page carries the tags a link preview reads', async ({ page, requ
   expect(html).not.toMatch(/rel="canonical"|og:url/)
 })
 
+// No sideways scroll on a phone.
 test('fits a phone without sideways scrolling', async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 800 })
   const { problems } = await open(page)

@@ -3,12 +3,15 @@
 import type { Page } from '@playwright/test'
 import { roadmap, snapshotResponse } from '../tests/support/fixtures.js'
 
+/** A response body: any JSON. */
 export type Body = unknown
+/** What the two public routes answer: a document, or a status code for a failure. */
 export interface Routes {
   roadmap?: Body | number
   snapshot?: Body | number
 }
 
+/** Open the built site with the two public routes mocked, refuse anything that leaves localhost, and wait until the page has settled. */
 export async function open(page: Page, routes: Routes = {}) {
   const problems: string[] = []
   const requested: string[] = []

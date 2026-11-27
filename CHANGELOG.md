@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+
+- Documentation pass (workspace documentation standard): every file has a header and line-level comments, every declaration a doc comment; `CONTRIBUTING.md` is new. The files synced from `@meddleware/frontend-config` now carry that package's commented templates (`npx mw-sync --write`). The built page is identical to the previous commit's apart from one header comment in `index.html`.
 - CI: `HOME=/root` is set on the browser-test command only, not the whole job, so the runner no longer warns that it cannot read
   `/root/.docker/config.json`.
 - `overrides.chrome-launcher: ^1.2.3`: Lighthouse CI (`@lhci/cli` 0.16.1, the newest) still asks for chrome-launcher 0.13, which pulls

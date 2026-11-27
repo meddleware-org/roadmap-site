@@ -1,3 +1,4 @@
+// Tests of the parsers and the status words (src/lib/roadmap.ts): only displayed fields are kept, malformed parts are dropped, and the snapshot's link must be https.
 import { describe, expect, it } from 'vitest'
 import { STATUS_LABEL, STATUS_SYMBOL, STATUS_TONE, filterItems, parseRoadmap, parseRoadmapSnapshot } from '../src/lib/roadmap.js'
 import { SHA, SIGNER, empty, noSnapshot, roadmap, snapshotResponse } from './support/fixtures.js'
@@ -5,6 +6,7 @@ import { SHA, SIGNER, empty, noSnapshot, roadmap, snapshotResponse } from './sup
 describe('the roadmap parser keeps only what the page shows', () => {
   const r = parseRoadmap(roadmap)!
 
+  // Reads phases and items.
   it('reads phases and items', () => {
     expect(r.updatedAt).toBe('2026-10-29T12:00:00Z')
     expect(r.phases.map((p) => p.name)).toEqual(['Foundations', 'Growth'])
@@ -16,6 +18,7 @@ describe('the roadmap parser keeps only what the page shows', () => {
     expect(r.phases[0]!.windowEnd).toBe('2027-01-31T00:00:00Z')
   })
 
+  // Drops every field it does not display, so nothing internal can reach the page.
   it('drops every field it does not display, so nothing internal can reach the page', () => {
     const text = JSON.stringify(r)
     for (const leaked of ['SECRET', 'phase-1', 'internal_', 'visible_bot', 'task_ids', 'key']) expect(text, leaked).not.toContain(leaked)
@@ -23,6 +26,7 @@ describe('the roadmap parser keeps only what the page shows', () => {
     expect(Object.keys(r.phases[0]!.items[0]!).sort()).toEqual(['description', 'dueAt', 'id', 'status', 'title', 'updatedAt'])
   })
 
+  // Drops a malformed item or phase instead of breaking the page.
   it('drops a malformed item or phase instead of breaking the page', () => {
     const bad = {
       schema_version: 1,
@@ -40,6 +44,7 @@ describe('the roadmap parser keeps only what the page shows', () => {
     expect(p.phases[0]!.items).toEqual([{ id: 'c', title: 'Good', description: '', status: 'planned', dueAt: null, updatedAt: null }])
   })
 
+  // Refuses what is not a roadmap, and bounds what it accepts.
   it('refuses what is not a roadmap, and bounds what it accepts', () => {
     for (const v of [null, [], 'x', {}, { schema_version: 2, phases: [] }, { schema_version: 1 }, { schema_version: 1, phases: 'x' }]) expect(parseRoadmap(v)).toBeNull()
     expect(parseRoadmap(empty)).toEqual({ updatedAt: null, phases: [] })
@@ -49,6 +54,7 @@ describe('the roadmap parser keeps only what the page shows', () => {
     expect(parseRoadmap(long)!.phases).toHaveLength(0)
   })
 
+  // Filters items by status.
   it('filters items by status', () => {
     const p = r.phases[0]!
     expect(filterItems(p, 'all')).toHaveLength(3)
@@ -58,6 +64,7 @@ describe('the roadmap parser keeps only what the page shows', () => {
 })
 
 describe('the snapshot parser', () => {
+  // Reads the latest snapshot and the blob link.
   it('reads the latest snapshot and the blob link', () => {
     const s = parseRoadmapSnapshot(snapshotResponse)!
     expect(s).toMatchObject({ network: 'testnet', sha256: SHA, signerAddress: SIGNER, blobId: 'Qc9aP0V6x3mYk2w1TnqL8sRZb4dEoFhJiUyXvCgA7MM' })
@@ -65,6 +72,7 @@ describe('the snapshot parser', () => {
     expect(JSON.stringify(s)).not.toContain('object_id')
   })
 
+  // Is null when there is none, or the response is wrong, or a link is not https.
   it('is null when there is none, or the response is wrong, or a link is not https', () => {
     expect(parseRoadmapSnapshot(noSnapshot)).toBeNull()
     expect(parseRoadmapSnapshot(null)).toBeNull()
@@ -76,6 +84,7 @@ describe('the snapshot parser', () => {
 })
 
 describe('status badges', () => {
+  // Give every status a label, a tone and a symbol; the label carries the meaning.
   it('give every status a label, a tone and a symbol; the label carries the meaning', () => {
     for (const status of ['planned', 'in_progress', 'done', 'cancelled'] as const) {
       expect(STATUS_LABEL[status]).toBeTruthy()

@@ -1,3 +1,4 @@
+// Component tests of the page: its landmarks and heading, the roadmap view against mocked responses (loading, failure, empty, filtering), and that nothing internal in a response reaches the screen.
 import { existsSync, readFileSync } from 'node:fs'
 import { flushPromises, mount } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
@@ -5,9 +6,12 @@ import App from '../src/App.vue'
 import RoadmapView from '../src/RoadmapView.vue'
 import { empty, noSnapshot, roadmap, snapshotResponse } from './support/fixtures.js'
 
+/** A handler that answers a route's path with a response. */
 type Handler = (path: string) => Response | Promise<Response>
+/** A JSON response. */
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json' } })
 
+/** Mount the roadmap view over a fake fetch, and keep the calls it made. */
 function view(handler: Handler) {
   const calls: Array<{ path: string; init: RequestInit }> = []
   const fetchImpl = (async (path: string, init: RequestInit) => {
@@ -19,11 +23,13 @@ function view(handler: Handler) {
 }
 
 const ok: Handler = (p) => (p === '/public/v1/roadmap' ? json(roadmap) : json(snapshotResponse))
+/** Let pending requests and renders finish. */
 const settle = async () => {
   for (let i = 0; i < 4; i++) await flushPromises()
 }
 
 describe('the page', () => {
+  // Has one page heading in the main landmark.
   it('has one page heading in the main landmark', () => {
     const w = mount(App)
     expect(w.findAll('h1')).toHaveLength(1)
@@ -32,6 +38,7 @@ describe('the page', () => {
 })
 
 describe('the shell', () => {
+  // Shows the Meddleware mark beside the site name in the header, and no docs or developer links.
   it('shows the Meddleware mark beside the site name in the header, and no docs or developer links', () => {
     const w = mount(App)
     const brand = w.get('header')
@@ -42,6 +49,7 @@ describe('the shell', () => {
     expect(w.find('footer a[href*="meddleware.dev"]').exists()).toBe(false)
   })
 
+  // Keeps no icon of its own: the icon links come from the shared brand set at build time.
   it('keeps no icon of its own: the icon links come from the shared brand set at build time', () => {
     expect(readFileSync('index.html', 'utf8')).not.toMatch(/rel="(?:shortcut )?icon"|apple-touch-icon/)
     expect(existsSync('public/favicon.svg')).toBe(false)
@@ -53,6 +61,7 @@ describe('the words on the page (for the public)', () => {
   // the page uses is explained beside it.
   const BANNED = [/operator/i, /VITE_/, /coming soon/i, /check back soon/i, /MeddleWare/, /\.mjs|\.sh\b|npm run|snapshot/i]
 
+  // Uses plain words everywhere, in the page, the roadmap and the record.
   it('uses plain words everywhere, in the page, the roadmap and the record', async () => {
     const { w } = view(ok)
     await settle()
@@ -67,6 +76,7 @@ describe('the words on the page (for the public)', () => {
     }
   })
 
+  // Says how to check the record, step by step, without claiming a check it did not do.
   it('says how to check the record, step by step, without claiming a check it did not do', async () => {
     const { w } = view(ok)
     await settle()
@@ -85,6 +95,7 @@ describe('the words on the page (for the public)', () => {
     expect(rec.findAll('time').map((t) => t.attributes('datetime'))).toEqual(['2026-10-29T12:00:00Z', '2026-11-27T12:00:00Z'])
   })
 
+  // Does not say a signed record is stored when it has no Walrus blob.
   it('does not say a signed record is stored when it has no Walrus blob', async () => {
     const unstored = structuredClone(snapshotResponse)
     unstored.snapshot.blob_id = null as unknown as string
@@ -97,6 +108,7 @@ describe('the words on the page (for the public)', () => {
     expect(rec.find('ol').exists()).toBe(false)
   })
 
+  // Marks every date as a time, and keeps an ampersand in a name.
   it('marks every date as a time, and keeps an ampersand in a name', async () => {
     const named = structuredClone(roadmap)
     named.phases[0]!.name = 'Research & Design'
@@ -108,6 +120,7 @@ describe('the words on the page (for the public)', () => {
     expect(w.find('br').exists()).toBe(false)
   })
 
+  // Shows a phase that has only one end to its window with From or Until.
   it('shows a phase that has only one end to its window with From or Until', async () => {
     const half = structuredClone(roadmap)
     half.phases[0]!.window_end = null as unknown as string
@@ -123,6 +136,7 @@ describe('the words on the page (for the public)', () => {
 })
 
 describe('the roadmap view', () => {
+  // Shows a loading state, then the phases with public wording, status and dates.
   it('shows a loading state, then the phases with public wording, status and dates', async () => {
     const { w } = view(ok)
     expect(w.get('output').text()).toBe('Loading the roadmap…')
@@ -140,6 +154,7 @@ describe('the roadmap view', () => {
     expect(w.text()).toContain('Last updated')
   })
 
+  // Reads only the two public routes on its own host, without credentials.
   it('reads only the two public routes on its own host, without credentials', async () => {
     const { w, calls } = view(ok)
     await settle()
@@ -148,6 +163,7 @@ describe('the roadmap view', () => {
     for (const c of calls) expect(c.init.credentials).toBe('omit')
   })
 
+  // Shows nothing internal even if the response carried it.
   it('shows nothing internal even if the response carried it', async () => {
     const { w } = view(ok)
     await settle()
@@ -155,6 +171,7 @@ describe('the roadmap view', () => {
     for (const leaked of ['SECRET', 'phase-1', 'task_ids', 'visible_bot']) expect(html, leaked).not.toContain(leaked)
   })
 
+  // Renders hostile wording as text.
   it('renders hostile wording as text', async () => {
     const hostile = structuredClone(roadmap)
     hostile.phases[0]!.name = '<img src=x onerror=alert(1)>Phase'
@@ -168,6 +185,7 @@ describe('the roadmap view', () => {
     expect(w.text()).toContain('<script>alert(2)</script>')
   })
 
+  // Filters by status and says when nothing matches.
   it('filters by status and says when nothing matches', async () => {
     const { w } = view(ok)
     await settle()
@@ -180,6 +198,7 @@ describe('the roadmap view', () => {
     expect(w.findAll('article')).toHaveLength(3)
   })
 
+  // Says when a phase has items but none match the filter.
   it('says when a phase has items but none match the filter', async () => {
     const onlyPlanned = structuredClone(roadmap)
     for (const i of onlyPlanned.phases[0]!.items) i.status = 'planned'
@@ -190,6 +209,7 @@ describe('the roadmap view', () => {
     expect(w.text()).toContain('Nothing here matches the filter.')
   })
 
+  // Says so when nothing is published.
   it('says so when nothing is published', async () => {
     const { w } = view((p) => (p === '/public/v1/roadmap' ? json(empty) : json(noSnapshot)))
     await settle()
@@ -197,6 +217,7 @@ describe('the roadmap view', () => {
     expect(w.find('fieldset').exists()).toBe(false)
   })
 
+  // Offers to try again when the roadmap cannot be loaded.
   it('offers to try again when the roadmap cannot be loaded', async () => {
     let fail = true
     const { w } = view((p) => (fail ? new Response('boom', { status: 503 }) : p === '/public/v1/roadmap' ? json(roadmap) : json(noSnapshot)))
@@ -210,12 +231,14 @@ describe('the roadmap view', () => {
     expect(w.find('[role="alert"]').exists()).toBe(false)
   })
 
+  // Treats a response that is not a roadmap as a failure.
   it('treats a response that is not a roadmap as a failure', async () => {
     const { w } = view(() => json({ hello: 'world' }))
     await settle()
     expect(w.find('[role="alert"]').exists()).toBe(true)
   })
 
+  // Shows the verifiable record when there is a snapshot, and stays quiet when there is none or it fails.
   it('shows the verifiable record when there is a snapshot, and stays quiet when there is none or it fails', async () => {
     const { w } = view(ok)
     await settle()
@@ -232,6 +255,7 @@ describe('the roadmap view', () => {
     }
   })
 
+  // Times out a hung request instead of waiting forever.
   it('times out a hung request instead of waiting forever', async () => {
     vi.useFakeTimers()
     try {

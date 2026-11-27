@@ -2,9 +2,12 @@
 // fields an internal API would have (`key`, `internal_name`, `visible_bot`, …) so tests can prove the site shows none of
 // them even if a response ever gained them.
 
+/** A signer address. */
 export const SIGNER = `0x${'ab'.repeat(32)}`
+/** A fingerprint. */
 export const SHA = 'f'.repeat(64)
 
+/** A roadmap document with extra internal fields, to prove none reaches the page. */
 export const roadmap = {
   schema_version: 1,
   updated_at: '2026-10-29T12:00:00Z',
@@ -58,6 +61,7 @@ export const roadmap = {
   ],
 }
 
+/** A snapshot response with a stored document. */
 export const snapshotResponse = {
   schema: 'content-hub.roadmap-snapshot/1',
   snapshot: {
@@ -77,5 +81,7 @@ export const snapshotResponse = {
   verify: 'Fetch the blob …',
 }
 
+/** A roadmap with no phases. */
 export const empty = { schema_version: 1, updated_at: null, phases: [] }
+/** A snapshot response when there is none. */
 export const noSnapshot = { schema: 'content-hub.roadmap-snapshot/1', snapshot: null, blob_url: null, verify: 'x' }
